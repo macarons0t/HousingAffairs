@@ -1,0 +1,235 @@
+---
+title: "DSA5822 Project Group 5"
+author: "Keane Looi A0135843A | Arisa Otsuka A0147095Y | Nick Keong A0156623E"
+date: "10/25/2020"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## QUESTION 1: Visualizing Housing Price Dataset
+
+### Load in libraries
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(rvest)
+library(readxl)
+library(classInt)
+library(leaflet)
+library(RColorBrewer)
+library(mapview)
+```
+
+### Read in data
+
+```{r Read in Data}
+dataset <- read_excel("property dataset.xlsx")
+colnames(dataset) <- c("id", "trans_date", "house_age", "dist_MRT", "num_stores", 
+                  "lat", "long", "price")
+
+# ../data/Real estate valuation data set.xlsx
+
+summary(dataset) #check summary 
+str(dataset) #str of dataset
+```
+
+### Analyse House Prices
+
+```{r General Housing Leaflet}
+# We will now observe what the prices are for housing.
+hist(dataset$price)
+#Based on the histogram, we will split the groups of houses into prices between <30, 
+#30-50 and 50+ to obtain a somewhat equal ratio between groups.
+
+# Houses with price below 30
+lowprice <- dataset %>%
+  filter(price < 30)
+icon.glyphicon <- makeAwesomeIcon(icon="home", markerColor = "green", library = "glyphicon") 
+
+# Houses with price between 30-50
+middleprice <- dataset %>%
+  filter(price >= 30 & price <= 50) 
+icon.ion <- makeAwesomeIcon(icon="home", markerColor = "blue", library = "ion") 
+
+# Houses with price greater than 50
+highprice <- dataset %>%
+  filter(price > 50)
+icon.fa <- makeAwesomeIcon(icon="home", markerColor = "red", library = "fa")
+
+# Plot map with leaflet
+price <- leaflet() %>% addTiles(group = "Default") %>%
+  addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+  # Overlay groups
+  addAwesomeMarkers(data=lowprice, group="Price: <30", lng = ~long, lat = ~lat, icon = icon.glyphicon, 
+          popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction    Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                          price,"<br>",sep=" "))) %>%
+  # Overlay groups
+  addAwesomeMarkers(data=middleprice, group="Price: 30-50", lng = ~long, lat = ~lat, icon = icon.ion, 
+                    popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                          price,"<br>",sep=" "))) %>%
+  #Overlay groups
+  addAwesomeMarkers(data=highprice, group="Price: 50+", lng = ~long, lat = ~lat, icon = icon.fa, 
+                    popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                          price,"<br>",sep=" "))) %>%
+  addLayersControl(baseGroups = c("Default", "Toner"), 
+                   overlayGroups = c("Price: <30", "Price: 30-50", "Price: 50+"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+price
+# Based on the price leaflet, we observe a trend that houses further away from the city cluster 
+# have lower prices than those within the city boundary. Houses on the right side of the river dividing 
+# the map in the center generally have higher prices than those on the left side. 
+
+# Houses that are along or nearby the highlighted road (that is beige in colour) seem to have the 
+# highest prices.
+```
+
+
+### Analyse House Age Impact on Price
+```{r House Age Variable}
+summary(dataset$house_age) #find the median house_age
+
+ #houses equals to and above 16 years
+old <- dataset %>%
+  filter(house_age >= 16)
+
+icon.glyphicon <- makeAwesomeIcon(icon="home", markerColor = "red", library = "glyphicon") 
+
+#houses below 16 years
+new <- dataset %>%
+  filter(house_age < 16) 
+icon.ion <- makeAwesomeIcon(icon="home", markerColor = "blue", library = "ion") 
+
+#Map 
+
+houseage <- leaflet() %>%
+  addTiles(group = "Default") %>%
+  addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+  #Overlay groups
+  addAwesomeMarkers(data=old, group="Old", lng = ~long, lat = ~lat, icon = icon.glyphicon, 
+                    popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                                    price,"<br>",sep=" "))) %>%
+  #Overlay groups
+  addAwesomeMarkers(data=new, group="New", lng = ~long, lat = ~lat, icon = icon.ion, 
+                    popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                                    price,"<br>",sep=" "))) %>%
+  #Layers Control 
+    addLayersControl(baseGroups = c("Default", "Toner"), 
+                   overlayGroups = c("Old","New"),
+  options = layersControlOptions(collapsed = FALSE)
+)
+
+
+houseage
+
+# Based on the houseage leaflet, we observe that there is very weak correlation between the age 
+# of houses and its price, especially when compared to other variables provided in the housing dataset.
+```
+
+### Analyse Num Stores Impact on Price
+```{r Num Stores Variable}
+summary(dataset$num_stores) #summary of num_stores
+hist(dataset$num_stores)
+# Based on the histogram, we observe that there is a high number of houses with 0 stores nearby, 
+# and houses with 6-10 stores nearby are also few. Therefore, we decided to split the categories into 
+# 0-1 stores, 2-5 stores and 6-10 stores. We are trying to keep the groups somewhat equal 
+# in proportion.
+
+# Houses with 0-1 Stores Nearby
+lowest <- dataset %>%
+  filter(num_stores <= 1)
+icon.glyphicon <- makeAwesomeIcon(icon="home", markerColor = "red", library = "glyphicon") 
+
+# Houses with 2-5 Stores Nearby
+middle <- dataset %>%
+  filter(num_stores >= 2 & num_stores <= 5) 
+icon.ion <- makeAwesomeIcon(icon="home", markerColor = "blue", library = "ion") 
+
+# Houses with 6-10 Stores Nearby
+high <- dataset %>%
+  filter(num_stores >= 6)
+icon.fa <- makeAwesomeIcon(icon="home", markerColor = "green", library = "fa")
+#Map 
+
+num_stores <- leaflet() %>%
+  addTiles(group = "Default") %>%
+  addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+  #Overlay groups
+  addAwesomeMarkers(data=lowest, group="Num Stores: 0-1", lng = ~long, lat = ~lat, icon = icon.glyphicon, popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",price,"<br>",sep=" "))) %>%
+  #Overlay groups
+  addAwesomeMarkers(data=middle, group="Num Stores: 2-5", lng = ~long, lat = ~lat, icon = icon.ion, popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",price,"<br>",sep=" "))) %>%
+  #Overlay groups
+  addAwesomeMarkers(data=high, group="Num Stores: 6-10", lng = ~long, lat = ~lat, icon = icon.fa, popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",price,"<br>",sep=" "))) %>%
+  #Layers Control 
+    addLayersControl(baseGroups = c("Default", "Toner"), 
+                   overlayGroups = c("Num Stores: 0-1","Num Stores: 2-5", "Num Stores: 6-10"),
+  options = layersControlOptions(collapsed = FALSE)
+)
+
+
+num_stores
+
+# We observe that houses away from the city center generally 
+# have lower num of stores nearby than those close to the city. Therefore, there is some correlation 
+# between num of stores nearby and house prices. The relationship is more pronounced when the num of stores nearby is low (hence lower prices and further from city centre). When the num of stores nearby is relatively high, there is very weak correlation with higher house prices.
+```
+
+
+### Analyse Distance to MRT Impact on Price
+```{r Dist MRT Variable}
+summary(dataset$dist_MRT) #summary of dist_mrt
+hist(dataset$dist_MRT)
+# Based on the histogram, it is difficult to classify the distance to MRT into 3 distinct groups. 
+# Therefore, we utilize the IQR provided by summary to split them into groups. 
+# The lower distance will be <492 (reaching Median distance), the middle group will be 
+# between 492 and 1454 (Median to 3rd IQR) and the final, highest group will be above the 3rd IQR at 1454.
+
+# Houses up to Median Dist from MRT: <492
+lowestdist <- dataset %>%
+  filter(dist_MRT < 492)
+icon.glyphicon <- makeAwesomeIcon(icon="home", markerColor = "red", library = "glyphicon") 
+
+# Houses between Median & 3rd IQR: 492-1454
+middledist <- dataset %>%
+  filter(dist_MRT >= 492 & dist_MRT <= 1454) 
+icon.ion <- makeAwesomeIcon(icon="home", markerColor = "blue", library = "ion") 
+
+# Houses above 3rd IQR: 1454+
+highdist <- dataset %>%
+  filter(dist_MRT > 1454)
+icon.fa <- makeAwesomeIcon(icon="home", markerColor = "green", library = "fa")
+#Map 
+
+distmrt <- leaflet() %>%
+  addTiles(group = "Default") %>%
+  addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+  # Overlay groups
+  addAwesomeMarkers(data=lowestdist, group="Dist to MRT: <492", lng = ~long, lat = ~lat, icon = icon.glyphicon, popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",price,"<br>",sep=" "))) %>%
+  # Overlay groups
+  addAwesomeMarkers(data=middledist, group="Dist to MRT: 492-1454", lng = ~long, lat = ~lat, icon = icon.ion, popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",                                                              price,"<br>",sep=" "))) %>%
+  # Overlay groups
+  addAwesomeMarkers(data=highdist, group="Dist to MRT: 1454+", lng = ~long, lat = ~lat, icon = icon.fa, 
+                    popup = ~(paste("<h3>House id</h3>",id,"<br>","<b>Transaction Date:</b>",trans_date,"<br>","<b>Age:</b>",house_age,"<br>","<b>Distance from MRT:</b>",dist_MRT,"<br>","<b>No. of stores:</b>",num_stores,"<br>","<b>Price:</b>",
+                                    price,"<br>",sep=" "))) %>%
+  # Layers Control 
+    addLayersControl(baseGroups = c("Default", "Toner"), 
+                   overlayGroups = c("Dist to MRT: <492","Dist to MRT: 492-1454", "Dist to MRT: 1454+"),
+  options = layersControlOptions(collapsed = FALSE)
+)
+
+distmrt
+
+# Based on the leaflet dist_mrt, we observe that houses away from the city center 
+# (and therefore MRT) generally have lower prices than those close to the city. 
+# Therefore, there is some correlation between distance to MRT and house prices. 
+# The relationship is more pronounced when the distance is large (i.e. hence lower prices). When the distance to MRT is 
+# relatively low, there is weaker correlation with higher house prices.
+```
