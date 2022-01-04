@@ -1,6 +1,6 @@
 ---
-title: "DSA5822 Project Group 5"
-author: "Keane Looi A0135843A | Arisa Otsuka A0147095Y | Nick Keong A0156623E"
+title:
+author:
 date: "10/25/2020"
 output:
   word_document: default
