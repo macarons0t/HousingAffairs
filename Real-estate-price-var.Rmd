@@ -1,0 +1,306 @@
+---
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Directory
+
+# Load Libraries
+```{r load libraries, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+library(gridExtra)
+```
+
+# Loading the dataset and check its structure
+```{r include=FALSE}
+dat <- Boston
+str(dat) #check data structure
+summary(dat) #check the spread of each variable
+head(dat) 
+tail(dat)
+#no extraneous values have been read in
+```
+##check data structure
+##check the spread of each variable
+
+# Data Preparation
+```{r include=FALSE}
+sum(is.na(dat))#Check for NA values - 0
+#Inspect the skewness for variables with a larger range
+hist(dat$crim) #right skewed
+hist(dat$zn) #right skewed
+hist(dat$indus) #right skewed
+hist(dat$nox) #right skewed
+hist(dat$rm) #right skewed
+hist(dat$age) #left skewed 
+hist(dat$dis) #right skewed
+hist(dat$rad) #right skewed
+hist(dat$tax) #right skewed
+hist(dat$ptratio) #left skewed
+hist(dat$black) #left skewed
+hist(dat$lstat) #right skewed
+hist(dat$medv) #right skewed
+```
+##Inspect the skewness for variables with a larger range
+
+
+## Objective: Build regression models to explain real estate price variation.
+## in this case it's the "medv" being the dependent variable.
+
+## Plot against variables
+```{r include=FALSE}
+#medv vs crim
+ggplot(dat, aes(x=crim, y=medv)) + geom_point() + geom_smooth() + scale_x_log10()
+ggplot(dat, aes(x=crim, y=medv)) + geom_point() + geom_smooth()
+##After doing a log x transformation, we obtained a smoother curve with an explainable trend. As crime rate increase, the median value of owner-occupied homes fall.
+
+#medv vs zn
+ggplot(dat, aes(x=zn, y=medv)) + geom_point() + geom_smooth()
+ggplot(dat, aes(x=zn, y=medv)) + geom_jitter(alpha = 0.4) + geom_smooth() #to avoid over-crowding of points
+##As the proportion of residential land zoned for lots over 25,000 sq.ft (zn) rises, the median-value of owner-occupied homes rises as well which is expected since most of the houses at higher zn should be the bigger houses that would naturally have a higher median value.
+
+#medv vs indus
+ggplot(dat, aes(x=indus, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##As the proportion of non-retail business acres per town rises, the median value of owner-occupied homes falls.
+##This make sense because in areas where there are higher retail shops, the mdev is higher and vice-versa.
+
+#medv vs chas
+#ggplot(dat, aes(x=chas, y=medv)) + geom_point() + geom_smooth()
+## Since this is a dummy variable, we cannot do a ggplot for this 
+ggplot(dat, aes(x=chas, y=medv, group=chas)) + geom_boxplot() + geom_jitter(alpha = 0.4, col = "orange")
+##The median value of houses are higher where the tract bounds the Charles river.
+##Otherwise, the medv of the houses are lower. 
+
+#medv vs nox
+ggplot(dat, aes(x=nox, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##Not a very smooth line but at least there is an expected downward trend where median value of houses are lower as the
+#concentration of nitric oxide increases
+
+#medv vs rm
+ggplot(dat, aes(x=rm, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##There is a positive trend and that is expected because bigger houses 
+##would fetch higher median values. However, there are some outliers.
+
+#medv vs age
+ggplot(dat, aes(x=age, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##Same trend as nox but this is only because of the large concentration of many old houses at the tail end.
+
+#medv vs dis
+ggplot(dat, aes(x=dis, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##Generally, there is no correlation between the medv and the weighted distances to five Boston employment centres.
+#However, for housing too close to the employment centres (~ < 3km), the medv can be observed to be lower.
+
+#medv vs rad
+ggplot(dat, aes(x=rad, y=medv)) + geom_point() + geom_smooth()
+ggplot(dat, aes(x=rad, y=medv)) + geom_boxplot(aes(group=rad)) + geom_jitter(alpha = 0.4, col = "orange")
+##There is no discernible trend. However, the skewness of the medv of homes increases (1-3) & (4-8).
+#This suggests that the accessibility of homes to highways raises the value of homes. 
+#outlier is when the radial index of 24 highways observed a sharp fall in medv. 
+
+ggplot(dat, aes(x=tax, y=medv)) + geom_jitter(alpha = 0.4) + geom_smooth()
+##KIV
+
+#medv vs ptratio
+ggplot(dat, aes(x=ptratio, y=medv)) + geom_jitter(alpha = 0.4) + geom_smooth()
+##Again, we observe a downward trend where higher ptratio results in lower house prices. 
+
+#medv vs black
+ggplot(dat, aes(x=black, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+##There is not a clear trend between the proportion of black population by town and the median house values.
+##However, when the value of black=400, a majority of medv of houses cluster at the lower end of the medv values. 
+
+#medv vs lstat
+ggplot(dat, aes(x=lstat, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+##There is a nice downward trend where the median price is lower at high levels of lstat (lower status of the population). 
+##This is expected. 
+```
+
+## Plot against variables
+##We did for all variables but only showing against rm as an example
+```{r echo=TRUE}
+#medv vs rm
+ggplot(dat, aes(x=rm, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
+##There is a positive trend and that is expected because bigger houses 
+##would fetch higher median values. However, there are some outliers.
+```
+
+
+## Fitting a linear Model rm, lstat, nox, age, ptratio
+
+```{r echo=TRUE}
+lm1 <- lm(medv ~ crim + indus + rm + tax + lstat + nox + age + ptratio, data=dat)
+lm1
+##Most of the sign of the coefficients make sense except age where we expect it to be negative.
+lm1_summary <- summary(lm1)
+lm1_summary
+##Only rm, lstat, ptratio are significant at the 0.001 level. age is 
+##significant at 0.05 level. nox is also significant at the 0.1 level.
+
+##Extracting R2, RMSPE, and AIC
+r2a <- lm1_summary$adj.r.squared
+r2a #0.6811
+rmspe1 <- sqrt(mean(rstandard(lm1, type="predictive")^2)) 
+rmspe1 #5.295
+AIC(lm1) #3114.086
+
+##Fitting a model and excluding non-significant variables 
+
+lm2 <- lm(medv ~ rm + lstat + nox + age + ptratio , data=dat)
+lm2
+##Most of the sign of the coefficients make sense except age where we expect it to be negative.
+lm2_summary <- summary(lm2)
+lm2_summary
+
+# Extracting R2, RMSPE, and AIC
+r2b <- lm2_summary$adj.r.squared 
+r2b #0.680
+rmspe2 <- sqrt(mean(rstandard(lm2, type="predictive")^2)) 
+rmspe2 #5.278
+AIC(lm2) #3112.307
+
+#AIC(lm2) < AIC(lm1)
+#rmspe2 < rmspe1
+#r2b < r2a
+```
+
+## Default plots from R
+
+```{r include=FALSE}
+plot(lm2,which=1:5)
+#Influential points: 215, 366, 369, 372, 373
+#Plot 2: Histogram of residuals is right-skewed
+#Plot 5: Most of the residual points have low residual value and leverage.
+```
+#These plots include the Residuals v fitted, Normal Q-Q, Scale-location, Cook's
+#distance & Residuals vs leverage. 
+#Influential points: 215, 366, 369, 372, 373
+#Plot 2: Histogram of residuals is right-skewed
+#Plot 5: Most of the residual points have low residual value and leverage.
+
+
+```{r echo=TRUE}
+# Adding new columns to the existing dataset
+dat <- mutate(dat, nstud_r = resid(lm2), stud_r = studres(lm2), 
+              fit_lm2 = fitted(lm2))
+
+# Create residual plots for each variable, and study them closely
+
+ggplot(dat) + geom_histogram(aes(x=stud_r))
+##based on stud_r histogram, indeed residuals are right skewed with outliers
+
+p1 <- ggplot(dat,aes(x=rm, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p2 <- ggplot(dat,aes(x=rm, y=stud_r)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p3 <- ggplot(dat,aes(x=lstat, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p4 <- ggplot(dat,aes(x=lstat, y=stud_r)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p5 <- ggplot(dat,aes(x=nox, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p6 <- ggplot(dat,aes(x=nox, y=stud_r)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p7 <- ggplot(dat,aes(x=age, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p8 <- ggplot(dat,aes(x=age, y=stud_r)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p9 <- ggplot(dat,aes(x=ptratio, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+p10 <- ggplot(dat,aes(x=ptratio, y=stud_r)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10, ncol=2) #Plots of x and y variables and residual plots
+#of each of the model's variables
+
+##Based on the above grid.arrange plot, the residuals for all the 
+##chosen variables are clustered around 0. 
+
+#p1 <- ggplot(dat) + geom_boxplot(aes(x=rm, y=stud_r, group=rm))
+#p2 <- ggplot(dat) + geom_boxplot(aes(x=rm, y=medv, group=rm))
+#grid.arrange(p1, p2, nrow=2)
+```
+
+
+## Detecting influential points
+```{r include=FALSE}
+#Output of dfbetas has 6 columns - 1 for each explanatory variable including the intercept 
+dfb <- dfbetas(lm2)
+qplot(x=1:506, y = dfb[,1]) #influential points on the intercept beta
+which(dfb[,1] > 0.3) #365 366 368 369
+qplot(x=1:506, y = dfb[,2]) #influential points on the rm beta
+which(dfb[,2] < -0.4) #365 366 368 369
+qplot(x=1:506, y = dfb[,3]) #influential points on the lstat beta
+which(dfb[,3] < -0.75 |dfb[,3] > 0.5) #215 369
+qplot(x=1:506, y = dfb[,4]) #influential points on the nox beta
+which(dfb[,4] < -0.2|dfb[,4] > 0.2) #156 365 366 373 413 
+qplot(x=1:506, y = dfb[,5]) #influential points on the age beta
+which(dfb[,5] < -0.45|dfb[,5] > 0.45) #215 369 
+qplot(x=1:506, y = dfb[,6]) #influential points on the ptratio beta
+which(dfb[,6] < -0.2|dfb[,6] > 0.2) #365 370 371 372 373
+#From the plots, likely influential points are: 365 369
+```
+##From the plots, likely influential points are: 365 369
+
+
+## Method 1: Fitting the robust line
+```{r echo=TRUE}
+lm2 <- lm(medv ~ rm + lstat + nox + age + ptratio, data=dat)
+lm2
+rlm2 <- rlm(medv ~ rm + lstat + nox + age + ptratio, data=dat) #robust linear model
+rlm2
+
+#Using values of slope for each coefficient to fit the robust lines.
+
+#fitting rm and medv
+fitted_lm1 <- ggplot(dat) + geom_point(aes(x=rm,y=medv)) +
+  geom_smooth(aes(x=rm,y=medv),method="lm",se=FALSE)
+fitted_rlm1 <- fitted_lm1 + geom_abline(slope=5.15770961,intercept=16.46533520,col="red")
+
+#fitting lstat and medv
+fitted_lm2 <- ggplot(dat) + geom_point(aes(x=lstat,y=medv)) +
+  geom_smooth(aes(x=lstat,y=medv),method="lm",se=FALSE)
+fitted_rlm2 <- fitted_lm2 + geom_abline(slope=-0.45586584,intercept=16.46533520,col="red")
+
+#fitting nox and medv
+fitted_lm3 <- ggplot(dat) + geom_point(aes(x=nox,y=medv)) +
+  geom_smooth(aes(x=nox,y=medv),method="lm",se=FALSE)
+fitted_rlm3 <- fitted_lm3 + geom_abline(slope=-7.85963756,intercept=16.46533520,col="red")
+
+#fitting age and medv
+fitted_lm4 <- ggplot(dat) + geom_point(aes(x=age,y=medv)) +
+  geom_smooth(aes(x=age,y=medv),method="lm",se=FALSE)
+fitted_rlm4 <- fitted_lm4 + geom_abline(slope=0.01124983,intercept=16.46533520,col="red")
+
+#fitting ptratio and medv
+fitted_lm5 <- ggplot(dat) + geom_point(aes(x=ptratio,y=medv)) +
+  geom_smooth(aes(x=ptratio,y=medv),method="lm",se=FALSE)
+fitted_rlm5 <- fitted_lm5 + geom_abline(slope=-0.95109494,intercept=16.46533520,col="red")
+
+#Putting them all together
+grid.arrange(fitted_rlm1, fitted_rlm2, fitted_rlm3, fitted_rlm4, fitted_rlm5, nrow=2)
+```
+
+
+## Method 2: Dropping identified influential points
+```{r echo=TRUE}
+#Include id column to remove the influential points
+dat <- mutate(dat, id = 1:nrow(dat))
+
+#Filter data without influential points
+dat_v2 <- dat %>%
+  filter(id != 365 & id != 369) 
+```
+
+## An improved model
+```{r echo=TRUE}
+##Extracting R2, RMSPE, and AIC
+lm3 <- lm(medv ~ rm + lstat + nox + age + ptratio, data=dat_v2)
+lm3
+lm3_summary <- summary(lm3)
+r2c <- lm3_summary$adj.r.squared
+r2c #0.700
+rmspe3 <- sqrt(mean(rstandard(lm3, type="predictive")^2)) 
+rmspe3 #5.068
+AIC(lm3) #3060.546
+
+#AIC is lower than initial model. 
+#RMSPE is lower at 5.068. Initial: sd(dat_v2$medv): 9.133429
+#RMSPE, AIC, R2 are all lower - hence we should use this model with the omitted influential points. 
+
