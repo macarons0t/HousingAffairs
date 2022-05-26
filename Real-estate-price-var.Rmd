@@ -60,7 +60,7 @@ hist(dat$medv) #right skewed
 #medv vs crim
 ggplot(dat, aes(x=crim, y=medv)) + geom_point() + geom_smooth() + scale_x_log10()
 ggplot(dat, aes(x=crim, y=medv)) + geom_point() + geom_smooth()
-##After doing a log x transformation, we obtained a smoother curve with an explainable trend. As crime rate increase, the median value of owner-occupied homes fall.
+##After log x transformation, see a smoother curve with an explainable trend. As crime rate increase, the median value of owner-occupied homes fall.
 
 #medv vs zn
 ggplot(dat, aes(x=zn, y=medv)) + geom_point() + geom_smooth()
@@ -74,7 +74,7 @@ ggplot(dat, aes(x=indus, y=medv)) + geom_point(position = "jitter", alpha = 0.4)
 
 #medv vs chas
 #ggplot(dat, aes(x=chas, y=medv)) + geom_point() + geom_smooth()
-## Since this is a dummy variable, we cannot do a ggplot for this 
+## Since this is a dummy variable, cannot do a ggplot for this 
 ggplot(dat, aes(x=chas, y=medv, group=chas)) + geom_boxplot() + geom_jitter(alpha = 0.4, col = "orange")
 ##The median value of houses are higher where the tract bounds the Charles river.
 ##Otherwise, the medv of the houses are lower. 
@@ -105,12 +105,9 @@ ggplot(dat, aes(x=rad, y=medv)) + geom_boxplot(aes(group=rad)) + geom_jitter(alp
 #This suggests that the accessibility of homes to highways raises the value of homes. 
 #outlier is when the radial index of 24 highways observed a sharp fall in medv. 
 
-ggplot(dat, aes(x=tax, y=medv)) + geom_jitter(alpha = 0.4) + geom_smooth()
-##KIV
-
 #medv vs ptratio
 ggplot(dat, aes(x=ptratio, y=medv)) + geom_jitter(alpha = 0.4) + geom_smooth()
-##Again, we observe a downward trend where higher ptratio results in lower house prices. 
+##Again, downward trend is observed where higher ptratio results in lower house prices. 
 
 #medv vs black
 ggplot(dat, aes(x=black, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
@@ -119,12 +116,11 @@ ggplot(dat, aes(x=black, y=medv)) + geom_point(position="jitter", alpha=0.4) + g
 
 #medv vs lstat
 ggplot(dat, aes(x=lstat, y=medv)) + geom_point(position="jitter", alpha=0.4) + geom_smooth()
-##There is a nice downward trend where the median price is lower at high levels of lstat (lower status of the population). 
-##This is expected. 
+##Downward trend where the median price is lower at high levels of lstat (lower status of the population). 
 ```
 
 ## Plot against variables
-##We did for all variables but only showing against rm as an example
+##Plots were done for all variables but only showing against rm as an example
 ```{r echo=TRUE}
 #medv vs rm
 ggplot(dat, aes(x=rm, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + geom_smooth()
@@ -138,7 +134,7 @@ ggplot(dat, aes(x=rm, y=medv)) + geom_point(position = "jitter", alpha = 0.4) + 
 ```{r echo=TRUE}
 lm1 <- lm(medv ~ crim + indus + rm + tax + lstat + nox + age + ptratio, data=dat)
 lm1
-##Most of the sign of the coefficients make sense except age where we expect it to be negative.
+##Most of the sign of the coefficients make sense except age where the relationship was thought to be negative.
 lm1_summary <- summary(lm1)
 lm1_summary
 ##Only rm, lstat, ptratio are significant at the 0.001 level. age is 
@@ -155,7 +151,7 @@ AIC(lm1) #3114.086
 
 lm2 <- lm(medv ~ rm + lstat + nox + age + ptratio , data=dat)
 lm2
-##Most of the sign of the coefficients make sense except age where we expect it to be negative.
+##Most of the sign of the coefficients make sense except age where the relationship is expected to be negative.
 lm2_summary <- summary(lm2)
 lm2_summary
 
@@ -191,7 +187,7 @@ plot(lm2,which=1:5)
 dat <- mutate(dat, nstud_r = resid(lm2), stud_r = studres(lm2), 
               fit_lm2 = fitted(lm2))
 
-# Create residual plots for each variable, and study them closely
+# Create residual plots for each variable
 
 ggplot(dat) + geom_histogram(aes(x=stud_r))
 ##based on stud_r histogram, indeed residuals are right skewed with outliers
@@ -302,5 +298,5 @@ AIC(lm3) #3060.546
 
 #AIC is lower than initial model. 
 #RMSPE is lower at 5.068. Initial: sd(dat_v2$medv): 9.133429
-#RMSPE, AIC, R2 are all lower - hence we should use this model with the omitted influential points. 
+#RMSPE, AIC, R2 are all lower - the model with the omitted influential points should be used. 
 
