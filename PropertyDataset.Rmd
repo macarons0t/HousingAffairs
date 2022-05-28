@@ -44,9 +44,9 @@ str(dataset) #str of dataset
 ### Analyse House Prices
 
 ```{r General Housing Leaflet}
-# We will now observe what the prices are for housing.
+# observe what the prices are for housing.
 hist(dataset$price)
-#Based on the histogram, we will split the groups of houses into prices between <30, 
+#Based on the histogram, split the groups of houses into prices between <30, 
 #30-50 and 50+ to obtain a somewhat equal ratio between groups.
 
 # Houses with price below 30
@@ -84,7 +84,7 @@ price <- leaflet() %>% addTiles(group = "Default") %>%
                    options = layersControlOptions(collapsed = FALSE))
 
 price
-# Based on the price leaflet, we observe a trend that houses further away from the city cluster 
+# Based on the price leaflet, there is a trend that houses further away from the city cluster 
 # have lower prices than those within the city boundary. Houses on the right side of the river dividing 
 # the map in the center generally have higher prices than those on the left side. 
 
@@ -130,7 +130,7 @@ houseage <- leaflet() %>%
 
 houseage
 
-# Based on the houseage leaflet, we observe that there is very weak correlation between the age 
+# Based on the houseage leaflet, there is very weak correlation between the age 
 # of houses and its price, especially when compared to other variables provided in the housing dataset.
 ```
 
@@ -138,9 +138,9 @@ houseage
 ```{r Num Stores Variable}
 summary(dataset$num_stores) #summary of num_stores
 hist(dataset$num_stores)
-# Based on the histogram, we observe that there is a high number of houses with 0 stores nearby, 
-# and houses with 6-10 stores nearby are also few. Therefore, we decided to split the categories into 
-# 0-1 stores, 2-5 stores and 6-10 stores. We are trying to keep the groups somewhat equal 
+# Based on the histogram, there is a high number of houses with 0 stores nearby, 
+# and houses with 6-10 stores nearby are also few. Therefore, the categories will be split into 
+# 0-1 stores, 2-5 stores and 6-10 stores. This is to keep the groups somewhat equal 
 # in proportion.
 
 # Houses with 0-1 Stores Nearby
@@ -177,7 +177,7 @@ num_stores <- leaflet() %>%
 
 num_stores
 
-# We observe that houses away from the city center generally 
+# houses away from the city center generally 
 # have lower num of stores nearby than those close to the city. Therefore, there is some correlation 
 # between num of stores nearby and house prices. The relationship is more pronounced when the num of stores nearby is low (hence lower prices and further from city centre). When the num of stores nearby is relatively high, there is very weak correlation with higher house prices.
 ```
@@ -188,7 +188,7 @@ num_stores
 summary(dataset$dist_MRT) #summary of dist_mrt
 hist(dataset$dist_MRT)
 # Based on the histogram, it is difficult to classify the distance to MRT into 3 distinct groups. 
-# Therefore, we utilize the IQR provided by summary to split them into groups. 
+# Therefore, the IQR provided by summary will be used to split them into groups. 
 # The lower distance will be <492 (reaching Median distance), the middle group will be 
 # between 492 and 1454 (Median to 3rd IQR) and the final, highest group will be above the 3rd IQR at 1454.
 
@@ -227,7 +227,7 @@ distmrt <- leaflet() %>%
 
 distmrt
 
-# Based on the leaflet dist_mrt, we observe that houses away from the city center 
+# Based on the leaflet dist_mrt, houses away from the city center 
 # (and therefore MRT) generally have lower prices than those close to the city. 
 # Therefore, there is some correlation between distance to MRT and house prices. 
 # The relationship is more pronounced when the distance is large (i.e. hence lower prices). When the distance to MRT is 
